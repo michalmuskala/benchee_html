@@ -2,11 +2,10 @@ defmodule Benchee.Formatters.HTML do
   use Benchee.Formatter
 
   require EEx
-  alias Benchee.{Suite, Statistics, Configuration}
+  alias Benchee.{Suite, Statistics, Benchmark.Scenario, Configuration}
   alias Benchee.Conversion
   alias Benchee.Conversion.{Duration, Count, DeviationPercent}
   alias Benchee.Utility.FileCreation
-  alias Benchee.Formatters.JSON
 
   # Major pages
   EEx.function_from_file :defp, :comparison,
@@ -188,7 +187,7 @@ defmodule Benchee.Formatters.HTML do
   defp job_reports(input_name, scenarios, system, units, inline_assets) do
     # extract some of me to benchee_json pretty please?
     Enum.map(scenarios, fn(scenario) ->
-      job_json = JSON.encode!(%{
+      job_json = json_encode!(%{
         statistics: scenario.run_time_statistics,
         run_times: scenario.run_times
       })
@@ -200,7 +199,7 @@ defmodule Benchee.Formatters.HTML do
   end
 
   defp comparison_report(input_name, scenarios, system, filename, units, inline_assets) do
-    input_json = JSON.format_scenarios_for_input(scenarios)
+    input_json = format_scenarios_for_input(scenarios)
 
     sorted_statistics = scenarios
                         |> Statistics.sort()
@@ -292,5 +291,47 @@ defmodule Benchee.Formatters.HTML do
       {:unix, _} -> "xdg-open"
       {:win32, _} -> "explorer"
     end
+  end
+
+  ## Copied from benchee_json
+  defp format_scenarios_for_input(scenarios) do
+    %{}
+    |> add_statistics(scenarios)
+    |> add_sort_order(scenarios)
+    |> add_run_times(scenarios)
+    |> json_encode!()
+  end
+
+  defp add_statistics(output, scenarios) do
+    statistics = scenarios
+                 |> Enum.map(fn(scenario) ->
+                      {scenario.name, scenario.run_time_statistics}
+                    end)
+                 |> Map.new
+    Map.put(output, "statistics", statistics)
+  end
+
+  # Sort order as determined by `Benchee.Statistics.sort`
+  defp add_sort_order(output, scenarios) do
+    sort_order = scenarios
+                 |> Benchee.Statistics.sort
+                 |> Enum.map(fn(%Scenario{name: name}) -> name end)
+    Map.put(output, "sort_order", sort_order)
+  end
+
+  defp add_run_times(output, scenarios) do
+    run_times = scenarios
+                |> Enum.map(fn(scenario) ->
+                     {scenario.name, scenario.run_times}
+                   end)
+                |> Map.new
+    Map.put(output, "run_times", run_times)
+  end
+
+  # Use the jason lib without depending on it - this assumes it will be used
+  # as a dependency in the jason project itself
+  defp json_encode!(data) do
+    json = Jason
+    json.encode!(data)
   end
 end

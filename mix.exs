@@ -30,7 +30,7 @@ defmodule BencheeHTML.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :benchee, :benchee_json]]
+    [applications: [:logger, :benchee]]
   end
 
   # Dependencies can be Hex packages:
@@ -45,7 +45,6 @@ defmodule BencheeHTML.Mixfile do
   defp deps do
     [
       {:benchee,        "~> 0.12",},
-      {:benchee_json,   "~> 0.5"},
       {:excoveralls,    "~> 0.8.1", only: :test},
       {:mix_test_watch, "~> 0.2",   only: :dev},
       {:credo,          "~> 0.4",   only: :dev},
