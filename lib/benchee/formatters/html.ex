@@ -188,7 +188,7 @@ defmodule Benchee.Formatters.HTML do
     # extract some of me to benchee_json pretty please?
     Enum.map(scenarios, fn(scenario) ->
       job_json = json_encode!(%{
-        statistics: scenario.run_time_statistics,
+        statistics: Map.from_struct(scenario.run_time_statistics),
         run_times: scenario.run_times
       })
       {
@@ -203,7 +203,7 @@ defmodule Benchee.Formatters.HTML do
 
     sorted_statistics = scenarios
                         |> Statistics.sort()
-                        |> Enum.map(fn(scenario) -> {scenario.name, %{run_time_statistics: scenario.run_time_statistics}} end)
+                        |> Enum.map(fn(scenario) -> {scenario.name, %{run_time_statistics: Map.from_struct(scenario.run_time_statistics)}} end)
                         |> Map.new
 
     input_run_times = scenarios
@@ -305,7 +305,7 @@ defmodule Benchee.Formatters.HTML do
   defp add_statistics(output, scenarios) do
     statistics = scenarios
                  |> Enum.map(fn(scenario) ->
-                      {scenario.name, scenario.run_time_statistics}
+                      {scenario.name, Map.from_struct(scenario.run_time_statistics)}
                     end)
                  |> Map.new
     Map.put(output, "statistics", statistics)
